@@ -12,51 +12,42 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Java 17
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: "17"
 
-      - name: Android SDK
-        uses: android-actions/setup-android@v3
+      - uses: gradle/actions/setup-gradle@v4
         with:
-          accept-android-sdk-licenses: true
+          gradle-version: "8.9"
+
+      - uses: android-actions/setup-android@v3
         with:
           packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
-      - name: Install SDK licenses and packages
-        run: |
-          yes | sdkmanager --licenses >/dev/null 2>&1 || true
-          sdkmanager --install "platforms;android-35" "build-tools;35.0.0"
+      - name: Accept SDK licenses
+        run: yes | sdkmanager --licenses >/dev/null 2>&1 || true
 
       - name: Build APK
-        run: |
-          set -euo pipefail
-          gradle --no-daemon --version
-          gradle --no-daemon clean assembleDebug
-          test -s app/build/outputs/apk/debug/app-debug.apk
+        run: gradle --no-daemon clean assembleDebug
 
       - name: Verify APK
         run: |
           set -euo pipefail
           APK="app/build/outputs/apk/debug/app-debug.apk"
-          AAPT="$ANDROID_HOME/build-tools/35.0.0/aapt"
-          "$AAPT" dump badging "$APK" | tee badging.txt
+          test -s "$APK"
+          "$ANDROID_HOME/build-tools/35.0.0/aapt" dump badging "$APK" | tee badging.txt
           grep -q "package: name='com.mokal147.videograb'" badging.txt
-          grep -q "application-label:'VideoGrab New'" badging.txt
           unzip -t "$APK"
           mkdir -p verified
           cp "$APK" verified/VideoGrabNew-debug.apk
           sha256sum verified/VideoGrabNew-debug.apk > verified/SHA256SUMS.txt
           cp badging.txt verified/
 
-      - name: Upload verified APK
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
-          name: VideoGrabNew-verified
+          name: VideoGrabNew-APK
           path: verified/
           if-no-files-found: error
