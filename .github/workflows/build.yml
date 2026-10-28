@@ -24,6 +24,8 @@ jobs:
       - name: Android SDK
         uses: android-actions/setup-android@v3
         with:
+          accept-android-sdk-licenses: true
+        with:
           packages: "platform-tools platforms;android-35 build-tools;35.0.0"
 
       - name: Install SDK licenses and packages
