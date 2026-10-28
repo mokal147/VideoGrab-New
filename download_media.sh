@@ -13,4 +13,4 @@ fi
 if [ -n "$START" ] && [ -n "$END" ]; then
   ARGS+=( --download-sections "*${START}-${END}" --force-keyframes-at-cuts )
 fi
-yt-dlp "${ARGS[@]}" -o "$OUT/%(title)s.%(ext)s" "$URL"
+yt-dlp "\${ARGS[@]}" -o "$OUT/%(title)s.%(ext)s" "$URL"
